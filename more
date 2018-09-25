@@ -1,0 +1,123 @@
+mvn clean install
+
+E:\>mvn clean install
+
+查找
+ps -ef|grep tomcat
+lsof -i:端口号，用于查看某一端口的占用情况，比如查看22号端口使用情况，lsof -i:22
+netstat -tunlp，用于显示tcp，udp的端口和进程等相关情况
+etstat -tunlp|grep 端口号，用于查看指定端口号的进程情况，如查看22端口的情况，netstat -tunlp|grep 22
+ ---------
+eclipse alt+shift+l 快速提取变量
+ctrl+shift+G \ctrl+alt+H
+-----
+
+安装cnpm
+在命令行中输入 
+npm install -g cnpm --registry=http://registry.npm.taobao.org
+
+查看版本
+npm -v
+node -v
+
+安装vue-cli脚手架构建工具,在命令行中运行命令
+cnpm install -g vue-cli
+
+cnpm install
+#npm install browser-sync
+
+npm run dev
+
+###
+cnpm i
+npm run dev
+cnpm i nodemon -g
+npm run dev
+
+cnpm install koa
+npm install -g cnpm --registry=https://registry.npm.taobao.org
+
+npm install cnpm -g
+npm install cnpm -g --registry=https://registry.npm.taobao.org
+
+npm install --global smart-npm --registry=https://registry.npm.taobao.org
+-------------
+关键字(page并2017-10-26)查询
+grep page XX.log|grep 2017-10-26
+egrep -e "page|2017-10-26" XX.log
+
+grep -C 5 foo file 显示file文件里匹配foo字串那行以及上下5行
+grep -B 5 foo file 显示foo及前5行
+grep -A 5 foo file 显示foo及后5行
+
+less xxx.log
+按/${key_work}的方式搜索你要高亮的关键字。（即使目前文件中没有也没关系）
+SHIFT+F，进入follow模式
+
+-----------
+ #强制终止pid
+ kill -9 $pid
+ 
+ #配置生效
+ source /etc/profile
+ 
+ #找端口
+ netstat -tunlp|grep 8080
+ 
+ #指定名字查询进程id/路径信息
+ pgrep mysql | xargs ps -u --pid
+
+#定期删除日志 
+find /root/service/logs/ -mtime +10 -name "XXX2017*.log" -exec rm -rf {} \;
+
+测试环境nginx目录: 
+ /etc/nginx
+
+>start nginx
+/usr/local/webserver/nginx/sbin/nginx -s reload            # 重新载入配置文件
+/usr/local/webserver/nginx/sbin/nginx -s reopen            # 重启 Nginx
+/usr/local/webserver/nginx/sbin/nginx -s stop              # 停止 Nginx
+ 
+ intell idea在线注册：
+ http://idea.iteblog.com/key.php
+ 
+ ---
+ 查询目录/文件大小
+ du -m logs
+ --------------------
+ ps -el | grep mysqld
+ ps -el | grep mysql
+ 
+ 查看文件安装路径
+ whereis mysql
+ 查询运行文件所在路径(文件夹地址)
+which mysql;
+ 
+show binary logs;
+------------
+
+使用pgrep命令。pgrep能查找当前正在运行的进程并列出符合条件的进程ID。例如显示firefox的进程ID：
+$ pgrep firefox
+
+--------------
+netstat -ano | findstr 80 //列出进程极其占用的端口，且包含 80
+netstat -aon|findstr "49157"
+
+taskkill -PID <进程号> -F //强制关闭某个进程
+taskkill -PID 4724 -F
+tasklist|findstr "2720"
+
+启动es head:
+grunt server
+
+jstack排查
+root@ubuntu:/# ps -ef | grep mrf-center | grep -v grep
+
+第二步找出该进程内最耗费CPU的线程，可以使用
+1）ps -Lfp pid
+2）ps -mp pid -o THREAD, tid, time
+3）top -Hp pid
+
+printf "%x\n" pid
+>54ee
+root@ubuntu:/# jstack 21711 | grep 54ee
