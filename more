@@ -121,3 +121,21 @@ root@ubuntu:/# ps -ef | grep mrf-center | grep -v grep
 printf "%x\n" pid
 >54ee
 root@ubuntu:/# jstack 21711 | grep 54ee
+--------------------------------
+#启动脚本
+#!/bin/sh
+#!/bin/sh
+echo "Stopping "
+ls
+pid=`ps -ef | grep  XXX.jar | grep -v grep | awk '{print $2}'`
+if [ -n "$pid" ]
+then
+#!kill -9 强制终止
+   echo "kill -9 的pid:" $pid
+   kill -9 $pid
+fi
+echo "已执行停止命令"
+source /etc/profile
+cd /root/service/api
+nohup java -Duser.timezone=GMT+8 -jar XXX.jar  > nohup.out  &
+echo "已执行启动命令"
