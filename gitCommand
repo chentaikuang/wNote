@@ -1,0 +1,86 @@
+拉取远程分支并创建本地分支
+git checkout -b master230915 origin/master
+切换分支
+git branch XX
+
+git config --global user.name "your name"
+git config --global user.email "your email"
+
+git 回滚到之前某一commit
+git reset –hard c8e7bd5accf9b3c13fe5e8fcb508136667c26c0b
+
+git push origin master
+
+git reset --hard commit-id  //回滚到commit-id，讲commit-id之后提交的commit都去除
+
+git reset --hard HEAD~3 //将最近3次的提交回滚
+
+删除远程分支XXX
+git push origin :admin-requirement-1113
+
+
+Command line instructions
+Git global setup
+
+git config --global user.name "your name"
+git config --global user.email "your email"
+
+Create a new repository
+
+git clone git@ip:projectName/repos.git
+cd projectName
+touch README.md
+git add README.md
+git commit -m "add README"
+
+#
+git pull --rebase origin master
+
+git push -u origin master
+
+Existing folder
+
+cd existing_folder
+git init
+git remote add origin git@ip:projectName/repos.git
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+
+Existing Git repository
+
+cd existing_repo
+git remote add origin git@ip:projectName/repos.git
+git push -u origin --all
+git push -u origin --tags
+
+查看日志列表
+git log --pretty=oneline
+
+创建tag标签发布
+git tag -a vXX -m ''
+
+#推送tag
+git push origin version
+
+切换tag
+git checkout tag_release_v_1.0.5
+
+git checkout -b 本地分支名 origin/远程分支名
+git fetch origin 远程分支名:本地分支名
+
+远程先开好分支然后拉到本地
+git checkout -b feature-branch origin/feature-branch    //检出远程的feature-branch分支到本地
+
+本地先开好分支然后推送到远程
+$  git checkout -b feature-branch    //创建并切换到分支feature-branch  
+//推送本地的feature-branch(冒号前面的)分支到远程origin的feature-branch(冒号后面的)分支(没有会自动创建)
+$  git push origin feature-branch:feature-branch
+
+//新增项目
+echo "# thymeleaf-demo" >> README.md
+git init
+git add .
+git commit -m "upload demo"
+git remote add origin git@github.com:chentaikuang/thymeleaf-demo.git
+git push -u origin master
