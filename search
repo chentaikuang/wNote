@@ -1,0 +1,359 @@
+
+转至元数据结尾
+由 陈太旷创建, 最后修改于六月 26, 2019转至元数据起始
+一、安装ES
+1）下载es6.5.4
+
+>wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.5.4.tar.gz
+
+2）解压复制到指定目录
+
+>cp elasticsearch-6.5.4. /opt/
+
+3）编辑config
+
+>vim config/elasticsearch.yml
+
+修改内容：
+
+cluster.name: elasticsearch
+
+
+
+network.host: 0.0.0.0
+http.port: 9200
+
+http.cors.enabled: true 
+
+http.cors.allow-origin: "*"
+node.master: true
+node.data: true
+
+4）新建普通用户apps（es不支持root用户启动）
+
+>adduser apps
+
+5）赋予权限
+
+[root@VM_0_9_centos config]# chown -R apps /opt/elasticsearch-6.5.4
+
+6）添加匹配数量
+
+>vim /etc/sysctl.conf
+
+vm.max_map_count=655360
+
+7）切换apps启动
+
+>su apps
+
+8）启动 ./bin/elasticsearch -d
+
+9）验证  curl 'http://localhost:9200/?pretty'
+
+二、配置ik插件
+1）下载插件https://github.com/medcl/elasticsearch-analysis-ik/releases
+
+
+
+2）解压到指定目录analysis-ik-6.5.4
+
+
+>unzip elasticsearch-analysis-ik-6.5.4.zip -d analysis-ik-6.5.4
+
+
+3）复制到es配置目录config下
+
+
+
+>mv analysis-ik-6.5.4 ../elasticsearch-6.5.4/plugins/
+
+
+
+三、安装logstash
+1）下载 https://artifacts.elastic.co/downloads/logstash/logstash-6.5.4.tar.gz
+
+2）解压到指定目录
+
+tar zxvf logstash-6.5.4.tar.gz
+
+mv logstash-6.5.4 ../
+
+3）配置索引模版
+
+在目录 /opt/logstash-6.5.4/config/templates下添加索引模版文件product.json
+{
+    "template":"nm_products2",
+    "settings":{
+        "index":{
+            "refresh_interval":"30s",
+            "number_of_shards": "5",
+            "number_of_replicas": "1"
+        },
+        "analysis": {
+			"normalizer": {
+				"my_normalizer": {
+					"type": "custom",
+					"char_filter": [],
+					"filter": ["lowercase", "asciifolding"]
+				}
+            },
+			"filter": {
+				"my_synonym_filter":{
+				  "type":"synonym",
+				  "synonyms_path":"synonym.txt"
+				}
+			},
+			"analyzer": {
+				"ik_syno_max":{
+				  "type":"custom",
+				  "tokenizer":"ik_max_word",
+				  "filter":["my_synonym_filter"]
+				}
+			}
+			
+        }
+    },
+    "mappings":{
+        "product":{
+            "properties":{
+                "id" : {
+                    "type":"long"
+                },
+                "name": {
+                    "type":"text",
+                    "analyzer": "ik_max_word",
+                    "search_analyzer": "ik_syno_max",
+                    "copy_to":"fullName"
+                },
+                "cateProdName": {
+                    "type":"text",
+                    "analyzer": "ik_max_word",
+                    "search_analyzer": "ik_syno_max"
+                },
+                "displayed": {
+                    "type":"boolean"
+                },
+                "minPrice": {
+                    "type":"long"
+                },
+                "maxPrice": {
+                    "type":"long"
+                },
+                "createdAt": {
+                    "type":"date"
+                },
+                "updatedAt": {
+                    "type":"date"
+                },
+                "prodImg": {
+                    "type":"keyword"
+                },
+				"fullName": {
+                    "type":"keyword",
+                    "normalizer": "my_normalizer"
+                },
+                "@version": {
+                    "type": "text",
+                    "fields": {
+                    "keyword": {
+                    "ignore_above": 256,
+                    "type": "keyword"
+                        }
+                    }
+                },
+                "@timestamp": {
+                    "type": "date"
+                }
+            }
+        }
+    }
+}
+4）在/opt/logstash-6.5.4/config目录下新建logstash同步文件sync_products.conf
+
+input {
+
+  jdbc {
+
+    jdbc_driver_library => "/opt/jar/mysql-connector-java-5.1.47-bin.jar"
+
+    jdbc_driver_class => "com.mysql.jdbc.Driver"
+
+    jdbc_connection_string => "jdbc:mysql://XXXX/XXXX"
+
+    jdbc_user => "XXXX"
+
+    jdbc_password => "XXXX"
+
+    schedule => "* */5 * * *"
+
+    statement => "SELECT *"
+
+    use_column_value => true
+
+    tracking_column_type => "numeric"
+
+    tracking_column => "id"
+
+    last_run_metadata_path => "sync_products_id"
+
+    lowercase_column_names => false
+
+    type => "insert_by_id"
+
+  }
+
+ jdbc {
+
+    jdbc_driver_library => "/opt/jar/mysql-connector-java-5.1.47-bin.jar"
+
+    jdbc_driver_class => "com.mysql.jdbc.Driver"
+
+    jdbc_connection_string => "jdbc:mysql://XXXX/XXXX"
+
+    jdbc_user => "XXXX"
+
+    jdbc_password => "XXXX"
+
+    schedule => "*/2 * * * *"
+
+    statement => "SELECT *"
+
+    use_column_value => true
+
+    tracking_column_type => "timestamp"
+
+    tracking_column => "updatedAt"
+
+    last_run_metadata_path => "sync_products_updated"
+
+    lowercase_column_names => false
+
+    type => "insert_by_time"
+
+  }
+
+}
+
+
+
+output {
+
+ if[type] == "insert_by_id" {
+
+   elasticsearch {
+
+ hosts => ["localhost"]
+
+ index => "nm_products"
+
+ document_id => "%{id}"
+
+ document_type => "product"
+
+ #template_overwrite => true
+
+                template => "/opt/logstash-6.5.4/config/templates/product.json"
+
+   }
+
+ }
+
+ if[type] == "insert_by_time" {
+
+   elasticsearch {
+
+ hosts => ["localhost"]
+
+ index => "nm_products"
+
+ document_id => "%{id}"
+
+ document_type => "product"
+
+   }
+
+ }
+
+
+
+5）启动进行数据同步
+
+cd /opt/logstash-6.5.4/bin
+
+bin>./logstash -f ../config/sync_products.conf
+
+守护进程执行
+(nohup /opt/logstash-6.5.4/bin/logstash -f /opt/logstash-6.5.4/config/sync_products.conf >logstash.out &)
+
+
+四、安装head组件
+
+1）如果未安装node，则需先安装node
+
+sudo yum install epel-release
+
+sudo yum install nodejs
+
+验证是否输出版本： node -v
+
+2）npm install -g grunt-cli
+
+3）npm install
+
+4）启动命令：grunt server
+
+5）访问http://IP:9100，出现操作画面
+
+
+----------------end--------------
+
+
+使用别名（alias）关联索引，达到完成数据索引的在线无感知切换目的。服务不再直接操作索引，而是通过别名alias来进行。
+
+可应用在同义词/近义词的更新场景中。
+
+
+
+具体操作：
+
+1）线上使用索引nm_products，现为索引新增索引别号
+
+curl -H 'Content-Type:application/json' -s -XPOST 'http://XXX:9200/_aliases' -d '{"actions":[{"add":{"index":"nm_products","alias":"nm_products_alias"}}]}'
+
+查看别名-索引关联情况：
+
+curl -s http://127.0.0.1:9200/_alias | jq
+
+
+
+2）新增备用索引nm_products2
+
+在logstash配置目录下，修改sync_products.conf文件中的索引名nm_products→nm_products2
+
+
+
+3）重启logstash，logstash自动完成新索引的创建，并完成索引nm_products2数据同步
+
+curl http://127.0.0.1:9200/_cat/indices?v  检查索引文档、数据大小同步情况
+
+
+
+4）替换索引别名，完成索引nm_products切换到nm_products2
+
+curl -H 'Content-Type:application/json' -s -XPOST 'http://XXX:9200/_aliases' -d '{"actions":[{"remove":{"index":"nm_products","alias":"nm_products_alias"}},{"add":{"index":"nm_products2","alias":"nm_products_alias"}}]}'
+
+
+
+5）logstash配置文件换回索引nm_products，完成全量数据同步
+
+
+
+6）类似步骤四，把别名切换到索引nm_products。线上服务可用情况下，兜一圈完成nm_products的索引更新。
+
+
+
+注：如出现索引数据混乱，可删除再创建索引
+
+curl -s  -XDELETE http://127.0.0.1:9200/nm_products?pretty
+
