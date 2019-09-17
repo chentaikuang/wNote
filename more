@@ -2,6 +2,28 @@ mvn clean install
 
 E:\>mvn clean install
 
+上传jar
+mvn clean deploy
+
+打包环境
+mvn install -Dmaven.test.skip=true -U -P pre
+
+查看内存情况：
+ps aux --sort -rss
+free -h
+cat /proc/meminfo
+
+搭建git linux 
+https://www.cnblogs.com/phpstudy2015-6/p/9153497.html
+http://www.runoob.com/git/git-server.html
+
+1.redis关闭 
+redis-cli -h 127.0.0.1 -p 6379 shutdown
+
+2.redis启动
+redis-server
+kill -9
+
 查找
 ps -ef|grep tomcat
 lsof -i:端口号，用于查看某一端口的占用情况，比如查看22号端口使用情况，lsof -i:22
@@ -53,6 +75,34 @@ grep -A 5 foo file 显示foo及后5行
 less xxx.log
 按/${key_work}的方式搜索你要高亮的关键字。（即使目前文件中没有也没关系）
 SHIFT+F，进入follow模式
+
+a表示显示目录下所有的文件和文件夹（不含子目录），h表示以人类能看懂的方式，max-depth表示目录的深度
+du -ah --max-depth=1
+du -sh /usr/
+查看指定目录
+命令du -sh * 看哪个目录占用空间大
+
+ df -lh
+ 
+ sudo df -h
+ 
+df -h /usr/
+计算文件夹大小
+du --max-depth=1 -h
+
+grep -E 'at |Execption|exception|Caused by' pd-cart.log
+grep -E 'ERROR|满2免1'  pd-cart.log
+grep pattern1 files | grep pattern2 //显示既匹配 pattern1 又匹配 pattern2 的行。
+grep -E '123|abc' filename  // 找出文件（filename）中包含123或者包含abc的行
+egrep '123|abc' filename    // 用egrep同样可以实现
+awk '/123|abc/' filename   // awk 的实现方式
+grep -o SAVE_POLL_LOG pd-mq.log  pd-mq.log|wc -l
+
+grep SELECT pd-cart.log | grep '2018-12-14/14:0[1-15]'
+
+查看进程堆栈
+jps
+jmap -heap 22984
 
 -----------
  #强制终止pid
@@ -139,3 +189,18 @@ source /etc/profile
 cd /root/service/api
 nohup java -Duser.timezone=GMT+8 -jar XXX.jar  > nohup.out  &
 echo "已执行启动命令"
+
+------------------
+
+Linux系统防火墙配置
+修改 /etc/sysconfig/iptables 这个文件
+vim /etc/sysconfig/iptables
+
+添加
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 3306 -j ACCEPT
+
+重启防火墙，使配置生效
+/etc/init.d/iptables restart
+service iptables restart
+
+
