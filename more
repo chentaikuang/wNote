@@ -203,4 +203,11 @@ vim /etc/sysconfig/iptables
 /etc/init.d/iptables restart
 service iptables restart
 
+查看tcp连接情况
+netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
 
+查看网络参数
+more /etc/sysctl.conf
+
+查看PID线程数
+ ps huH p  1581  | wc -l
